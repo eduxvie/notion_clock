@@ -8,11 +8,12 @@
     <style>
         /* Container-based scale variable (set via JS) */
         :root {
-            --scale: 200px;
+            --scale: clamp(3rem, 12vw, 10rem);
+            /* same as clock */
             /* fallback in case JS doesn't run */
             --track-w: var(--scale);
-            --track-h: calc(var(--scale) / 2);
-            --knob-size: calc(var(--scale) / 2.2);
+            --track-h: calc(var(--scale) / 2.5);
+            --knob-size: calc(var(--scale) / 2.8);
             --knob-offset-x: 8px;
             --knob-right-shift: calc(var(--track-w) - var(--knob-size) - (var(--knob-offset-x) * 2));
         }
@@ -35,10 +36,13 @@
             background: radial-gradient(circle at center, #0f172a, #1e293b);
             color: #e2e8f0;
         }
-/* Remove glow when in dark mode */
-body.dark #clock {
-  text-shadow: none;   /* disables glow */
-}
+
+        /* Remove glow when in dark mode */
+        body.dark #clock {
+            text-shadow: none;
+            /* disables glow */
+        }
+
         /* App wrapper ensures ResizeObserver targets correct element */
         #app {
             position: relative;
@@ -51,7 +55,8 @@ body.dark #clock {
 
         /* Clock uses container-based --scale */
         #clock {
-            font-size: var(--scale);
+            font-size: clamp(3rem, 12vw, 10rem);
+            /* min 3rem, scales with viewport, max 10rem */
             font-weight: 800;
             text-align: center;
             text-shadow:
@@ -59,6 +64,12 @@ body.dark #clock {
                 0 0 40px rgba(106, 17, 203, 0.6),
                 0 0 60px rgba(37, 117, 252, 0.6);
         }
+
+        /* remove glow in dark mode */
+        body.dark #clock {
+            text-shadow: none;
+        }
+
 
         /* Shared toggle base */
         .toggle {
@@ -106,7 +117,8 @@ body.dark #clock {
         .knob,
         .clock-knob {
             position: absolute;
-            left: var(--knob-offset-x);
+            /* left: var(--knob-offset-x);*/
+            left: 8px;
             top: 50%;
             transform: translateY(-50%);
             width: var(--knob-size);
@@ -128,8 +140,9 @@ body.dark #clock {
         }
 
         /* Theme knob when checked (dark) */
-        .theme-toggle input:checked+.track .knob {
-            transform: translateX(var(--knob-right-shift)) translateY(-50%);
+        .theme-toggle input:checked+.track .knob,
+        .clock-toggle input:checked+.clock-track .clock-knob {
+            transform: translateX(calc(var(--track-w) - var(--knob-size) - 16px)) translateY(-50%);
             background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
             box-shadow:
                 0 10px 20px rgba(0, 0, 0, 0.4),
@@ -200,7 +213,7 @@ body.dark #clock {
                 inset 0 6px 12px rgba(255, 255, 255, 0.8);
             color: #1f2937;
             font-weight: 800;
-            font-size: calc(var(--scale) / 6);
+            font-size: calc(var(--scale) / 8);
             /* text scales with container */
         }
 
