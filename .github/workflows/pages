@@ -1,0 +1,32 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]          # or "master" if you still use it
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Replace this block with your actual build command
+      - name: Build site (example for Vite/Astro/11ty)
+        run: |
+          npm ci
+          npm run build               # → this must output to "dist" or "build" folder
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist                    # ← change if your output folder is different (e.g. build, public, _site)
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
