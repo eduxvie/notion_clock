@@ -132,7 +132,17 @@
             position: absolute;
             inset: 0;
             border-radius: 50px;
+            background: linear-gradient(145deg, #e2e8f0, #ffffff);
+            display: flex;
+            /* NEW */
+            justify-content: space-between;
+            /* NEW */
+            align-items: center;
+            /* NEW */
+            padding: 0 20px;
+            /* NEW: spacing from edges */
         }
+
 
         .clock-knob {
             position: absolute;
@@ -155,9 +165,9 @@
         }
 
         .label {
-            position: absolute;
+            position: static;
             top: 50%;
-            transform: translateY(-50%);
+            transform: none;
             font-weight: 700;
             font-size: 18px;
             transition: all 0.3s ease;
