@@ -287,9 +287,9 @@
             const setScale = () => {
                 const w = app.clientWidth || window.innerWidth;
                 // Compute scale based on container width:
-                // min 160px, preferred 0.25 * container width, max 320px
-                const preferred = w * 0.15;
-                const scale = Math.max(100, Math.min(preferred, 180));
+                // min 160px, preferred 0.25 * container width, max 320px was 0.15 and max 180px
+                const preferred = w * 0.10;
+                const scale = Math.max(100, Math.min(preferred, 150));
                 document.documentElement.style.setProperty('--scale', scale + 'px');
             };
             // Initial set and observe container resize
