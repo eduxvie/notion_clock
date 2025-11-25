@@ -35,7 +35,10 @@
             background: radial-gradient(circle at center, #0f172a, #1e293b);
             color: #e2e8f0;
         }
-
+/* Remove glow when in dark mode */
+body.dark #clock {
+  text-shadow: none;   /* disables glow */
+}
         /* App wrapper ensures ResizeObserver targets correct element */
         #app {
             position: relative;
