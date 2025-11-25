@@ -2,16 +2,18 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Aura Clock</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aura Clock — Dual Toggles</title>
     <style>
+        /* Aura background and theme */
         body {
             margin: 0;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Arial', sans-serif;
+            font-family: system-ui, -apple-system, Arial, sans-serif;
             background: radial-gradient(circle at center, #6a11cb, #2575fc);
             color: white;
             transition: background 0.6s ease, color 0.6s ease;
@@ -22,26 +24,27 @@
             color: #e2e8f0;
         }
 
+        /* Center clock */
         #clock {
-            font-size: 4em;
-            font-weight: bold;
+            font-size: 5em;
+            font-weight: 800;
+            text-align: center;
             text-shadow:
-                0 0 20px rgba(255, 255, 255, 0.2),
+                0 0 20px rgba(255, 255, 255, 0.25),
                 0 0 40px rgba(106, 17, 203, 0.6),
                 0 0 60px rgba(37, 117, 252, 0.6);
         }
 
-        /* Toggle switch styling */
-        .toggle-3d {
+        /* Shared toggle styles */
+        .toggle {
             position: fixed;
-            top: 20px;
-            right: 20px;
             width: 180px;
             height: 90px;
             cursor: pointer;
+            user-select: none;
         }
 
-        .toggle-3d input {
+        .toggle input {
             opacity: 0;
             width: 0;
             height: 0;
@@ -60,26 +63,13 @@
             transition: all 0.6s cubic-bezier(0.2, 0.8, 0.4, 1);
         }
 
-        input:checked+.track {
+        /* Darker track when checked (right position) */
+        .toggle input:checked+.track {
             background: linear-gradient(145deg, #1e293b, #334155);
             box-shadow:
                 inset 8px 8px 16px rgba(0, 0, 0, 0.6),
                 inset -8px -8px 16px rgba(100, 100, 150, 0.2),
                 0 20px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        .track::before {
-            content: "";
-            position: absolute;
-            inset: 8px;
-            border-radius: 44px;
-            background: linear-gradient(90deg, #ffd89b 0%, #87ceeb 50%, #6b7280 100%);
-            opacity: 0.7;
-            transition: all 0.6s ease;
-        }
-
-        input:checked+.track::before {
-            background: linear-gradient(90deg, #1e40af 0%, #1e293b 50%, #0f172a 100%);
         }
 
         .knob {
@@ -95,95 +85,175 @@
                 inset 0 -6px 12px rgba(0, 0, 0, 0.1),
                 inset 0 6px 12px rgba(255, 255, 255, 0.8);
             transition: all 0.6s cubic-bezier(0.2, 0.8, 0.4, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* center icons */
         }
 
-        input:checked+.track .knob {
+        .toggle input:checked+.track .knob {
             transform: translateX(90px);
             background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         }
 
+        /* Icons centered and scaled to knob */
         .icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 44px;
-            height: 44px;
-            transform: translate(-50%, -50%);
+            width: 60%;
+            height: 60%;
         }
 
         .sun {
             fill: #f59e0b;
-            filter: drop-shadow(0 0 14px #fbbf24);
-            opacity: 1;
-            transition: all 0.6s ease;
+            filter: drop-shadow(0 0 12px #fbbf24);
+            transition: opacity 0.4s, transform 0.6s;
         }
 
         .moon {
-            opacity: 0;
-            transition: all 0.6s ease;
+            fill: #ffffff;
+            transition: opacity 0.4s, transform 0.6s;
         }
 
-        input:checked+.track .sun {
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0.6) rotate(360deg);
+        /* Show only one icon depending on theme */
+        body:not(.dark) .moon {
+            display: none;
         }
 
-        input:checked+.track .moon {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        body.dark .sun {
+            display: none;
         }
 
-        input:active+.track .knob {
-            transform: translateX(0) scale(0.94) !important;
+        /* 12/24 toggle (top-left) */
+        .clock-toggle {
+            top: 20px;
+            left: 20px;
         }
 
-        input:checked:active+.track .knob {
-            transform: translateX(90px) scale(0.94) !important;
+        .clock-track {
+            position: absolute;
+            inset: 0;
+            border-radius: 50px;
         }
 
-        <head><meta charset="UTF-8"><title>Aura Clock</title><style>
-
-        /* Existing styles for body, clock, toggle switch */
-        body {
-            ...
+        .clock-knob {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 74px;
+            height: 74px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.4, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        #clock {
-            ...
+        /* Move knob to right when 24h is active (checked) */
+        .clock-toggle input:checked+.clock-track .clock-knob {
+            transform: translateX(90px);
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         }
 
-        .toggle-3d {
-            ...
+        .label {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: 700;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            color: #475569;
         }
 
-        /* etc. */
+        .label-12 {
+            left: 28px;
+        }
 
-        /* ⬇️ MERGE RESPONSIVE CSS HERE */
-        /* Medium screens (tablets, <1024px) */
+        .label-24 {
+            right: 28px;
+            color: #94a3b8;
+        }
+
+        .clock-toggle input:checked+.clock-track .label-12 {
+            color: #94a3b8;
+        }
+
+        .clock-toggle input:checked+.clock-track .label-24 {
+            color: #e0e7ff;
+            font-weight: 800;
+        }
+
+        /* Light/Dark toggle (top-right) */
+        .theme-toggle {
+            top: 20px;
+            right: 20px;
+        }
+
+        /* Responsive scaling */
         @media (max-width: 1024px) {
             #clock {
                 font-size: 4em;
             }
 
-            .toggle-3d {
+            .toggle {
                 width: 150px;
                 height: 75px;
-                top: 15px;
-                right: 15px;
+            }
+
+            .knob,
+            .clock-knob {
+                width: 60px;
+                height: 60px;
+            }
+
+            .toggle input:checked+.track .knob {
+                transform: translateX(75px);
+            }
+
+            .clock-toggle input:checked+.clock-track .clock-knob {
+                transform: translateX(75px);
+            }
+
+            .icon {
+                width: 50%;
+                height: 50%;
+            }
+
+            .label {
+                font-size: 16px;
             }
         }
 
-        /* Small screens (phones, <640px) */
         @media (max-width: 640px) {
             #clock {
                 font-size: 3em;
             }
 
-            .toggle-3d {
+            .toggle {
                 width: 120px;
                 height: 60px;
-                top: 10px;
-                right: 10px;
+            }
+
+            .knob,
+            .clock-knob {
+                width: 48px;
+                height: 48px;
+            }
+
+            .toggle input:checked+.track .knob {
+                transform: translateX(60px);
+            }
+
+            .clock-toggle input:checked+.clock-track .clock-knob {
+                transform: translateX(60px);
+            }
+
+            .icon {
+                width: 50%;
+                height: 50%;
+            }
+
+            .label {
+                font-size: 14px;
             }
         }
     </style>
@@ -192,53 +262,88 @@
 <body>
     <div id="clock"></div>
 
-    <!-- Replace old toggle button with this switch -->
-    <label class="toggle-3d">
-        <input type="checkbox" id="mode">
+    <!-- Light/Dark Toggle (top-right) -->
+    <label class="toggle theme-toggle" aria-label="Toggle theme">
+        <input type="checkbox" id="mode" />
         <div class="track">
             <div class="knob">
-                <!-- Sun Icon -->
-                <svg class="icon sun" viewBox="0 0 24 24">
+                <!-- Sun (shown in light mode) -->
+                <svg class="icon sun" viewBox="0 0 24 24" aria-hidden="true">
                     <circle cx="12" cy="12" r="6" />
                     <path
                         d="M12 5V3m0 18v-2m7.07-7.07l1.42-1.42m-12.72 0L6.35 9.35m12.72 5.36l-1.42 1.42M7.65 16.35l-1.42-1.42m0-9.9l1.42-1.42m9.9 12.72l1.42 1.42" />
                 </svg>
-
-                <!-- Crescent Moon Icon -->
-                <svg class="icon moon" viewBox="0 0 24 24">
-                    <path fill="#ffffff"
-                        d="M12.12 3A7.5 7.5 0 0 0 4.5 12.12a7.5 7.5 0 0 0 14.76 2.18 7 7 0 0 1-7.14-9.3z" />
+                <!-- Moon (shown in dark mode) -->
+                <svg class="icon moon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12.12 3A7.5 7.5 0 0 0 4.5 12.12a7.5 7.5 0 0 0 14.76 2.18 7 7 0 0 1-7.14-9.3z" />
                 </svg>
             </div>
         </div>
     </label>
 
+    <!-- 12/24 Hour Toggle (top-left) -->
+    <label class="toggle clock-toggle" aria-label="Toggle 12/24 hour format">
+        <input type="checkbox" id="clockFormat" />
+        <div class="clock-track">
+            <div class="clock-knob"></div>
+            <div class="label label-12">12H</div>
+            <div class="label label-24">24H</div>
+        </div>
+    </label>
+
     <script>
-        // Clock logic
+        /* Persisted settings */
+        const themeToggle = document.getElementById('mode');
+        const formatToggle = document.getElementById('clockFormat');
+        const body = document.body;
+
+        // Initialize theme from storage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            body.classList.add('dark');
+            themeToggle.checked = true; // knob to the right
+        } else {
+            body.classList.remove('dark');
+            themeToggle.checked = false; // knob to the left
+        }
+
+        // Theme toggle handler
+        themeToggle.addEventListener('change', () => {
+            const isDark = themeToggle.checked;
+            body.classList.toggle('dark', isDark);
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+
+        // Initialize clock format from storage
+        const savedFormat = localStorage.getItem('clockFormat') || '12';
+        formatToggle.checked = savedFormat === '24'; // checked means 24h
+        let is24Hour = savedFormat === '24';
+
+        // Clock formatting
+        function formatTime(now) {
+            let h = now.getHours();
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            if (is24Hour) {
+                return `${String(h).padStart(2, '0')}:${m}:${s}`;
+            } else {
+                const suffix = h >= 12 ? ' PM' : ' AM';
+                h = h % 12 || 12;
+                return `${String(h).padStart(2, '0')}:${m}:${s}${suffix}`;
+            }
+        }
+
         function updateClock() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+            document.getElementById('clock').textContent = formatTime(new Date());
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Light/Dark toggle logic
-        const toggle = document.getElementById('mode');
-        const body = document.body;
-
-        if (localStorage.getItem('theme') === 'dark') {
-            body.classList.add('dark');
-            toggle.checked = true;
-        }
-
-        toggle.addEventListener('change', () => {
-            body.classList.toggle('dark');
-            localStorage.setItem('theme', body.classList.contains('dark') ? 'dark' : 'light');
+        // 12/24 toggle handler
+        formatToggle.addEventListener('change', () => {
+            is24Hour = formatToggle.checked;
+            localStorage.setItem('clockFormat', is24Hour ? '24' : '12');
+            updateClock();
         });
     </script>
 </body>
-
-</html>
