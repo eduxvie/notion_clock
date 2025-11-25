@@ -4,12 +4,25 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aura Clock — Notion Widget</title>
+    <title>Aura Clock — Minimal & Beautiful</title>
 
-    <!-- PWA / Homescreen polish -->
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>Clock</text></svg>" />
-    <meta name="theme-color" content="#6a11cb" />
+    <!-- PWA Manifest + iOS Support (inline, no external files) -->
+    <link rel="manifest" href="data:application/manifest+json,{
+      %22name%22:%22Aura Clock%22,%22short_name%22:%22AuraClock%22,
+      %22description%22:%22Beautiful minimal clock with dark mode, 12/24h, and fullscreen%22,
+      %22start_url%22:%22.%22,%22display%22:%22standalone%22,
+      %22background_color%22:%22#6a11cb%22,%22theme_color%22:%22#6a11cb%22,
+      %22orientation%22:%22any%22,
+      %22icons%22:[
+        {%22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='%23ffffff' stroke='%236a11cb' stroke-width='8'/%3E%3Cpath d='M50 15 L50 50 L70 70' stroke='%236a11cb' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22,%22purpose%22:%22any maskable%22},
+        {%22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='%23ffffff' stroke='%236a11cb' stroke-width='8'/%3E%3Cpath d='M50 15 L50 50 L70 70' stroke='%236a11cb' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22,%22purpose%22:%22any maskable%22}
+      ]
+    }">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Aura Clock">
+    <link rel="apple-touch-icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='%23ffffff' stroke='%236a11cb' stroke-width='8'/%3E%3Cpath d='M50 15 L50 50 L70 70' stroke='%236a11cb' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
 
     <style>
         :root {
@@ -42,6 +55,7 @@
             background: radial-gradient(circle at center, #6a11cb, #2575fc);
             color: white;
             transition: background 0.6s ease, color 0.6s ease;
+            overflow: hidden;
         }
 
         body.dark {
@@ -75,7 +89,7 @@
             animation: breathe 8s ease-in-out infinite;
         }
 
-        /* Accessibility & motion */
+        /* Motion & Accessibility */
         @media (prefers-reduced-motion: reduce) {
 
             *,
@@ -92,7 +106,6 @@
             }
         }
 
-        /* Focus indicators */
         .toggle input:focus-visible+.track,
         .toggle input:focus-visible+.clock-track {
             outline: 4px solid rgba(255, 255, 255, 0.5);
@@ -104,7 +117,7 @@
             outline-color: rgba(148, 163, 184, 0.6);
         }
 
-        /* Toggles – shared */
+        /* Shared toggle styles */
         .toggle {
             position: fixed;
             width: var(--track-w);
@@ -120,7 +133,6 @@
             content: "";
             position: absolute;
             inset: -12px;
-            /* larger tap target */
         }
 
         .toggle input {
@@ -135,9 +147,21 @@
             inset: 0;
             border-radius: 50px;
             transition: all 0.6s cubic-bezier(0.2, 0.8, 0.4, 1);
+            background: linear-gradient(145deg, #e2e8f0, #ffffff);
+            box-shadow: inset 8px 8px 16px rgba(163, 177, 198, 0.6),
+                inset -8px -8px 16px rgba(255, 255, 255, 0.9),
+                0 20px 40px rgba(0, 0, 0, 0.15);
         }
 
-        /* Theme toggle (top-right) */
+        body.dark .track,
+        body.dark .clock-track {
+            background: linear-gradient(145deg, #1e293b, #334155);
+            box-shadow: inset 8px 8px 16px rgba(0, 0, 0, 0.6),
+                inset -8px -8px 16px rgba(100, 100, 150, 0.2),
+                0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Positioning */
         .theme-toggle {
             inset-block-start: 20px;
             inset-inline-end: 20px;
@@ -148,23 +172,54 @@
             inset-inline-start: 20px;
         }
 
-        /* Light tracks */
-        .track,
-        .clock-track {
-            background: linear-gradient(145deg, #e2e8f0, #ffffff);
-            box-shadow: inset 8px 8px 16px rgba(163, 177, 198, 0.6),
-                inset -8px -8px 16px rgba(255, 255, 255, 0.9),
-                0 20px 40px rgba(0, 0, 0, 0.15);
+        /* PERFECT TOP-CENTER FULLSCREEN BUTTON */
+        .fullscreen-toggle {
+            position: fixed;
+            top: 24px;
+            /* distance from top edge */
+            left: 50%;
+            transform: translateX(-50%);
+            /* perfect horizontal centering */
+            background: rgba(110, 87, 255, 0.25);
+            /* translucent purple like your mockup */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 50%;
+            width: 64px;
+            height: 64px;
+            padding: 0;
+            z-index: 30;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
         }
 
-        /* Dark tracks */
-        body.dark .track,
-        body.dark .clock-track {
-            background: linear-gradient(145deg, #1e293b, #334155);
-            box-shadow: inset 8px 8px 16px rgba(0, 0, 0, 0.6),
-                inset -8px -8px 16px rgba(100, 100, 150, 0.2),
-                0 20px 40px rgba(0, 0, 0, 0.4);
+        .fullscreen-toggle:hover {
+            transform: translateX(-50%) scale(1.1);
+            background: rgba(110, 90, 255, 0.35);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
         }
+
+        .fullscreen-icon {
+            width: 38px;
+            height: 38px;
+            fill: white;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        /* Dark mode — keep same style (already white + purple works perfectly) */
+        body.dark .fullscreen-toggle {
+            background: rgba(110, 87, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Hide in Notion embeds */
+        if (window.self !==window.top) {
+            document.getElementById('fullscreenBtn').style.display='none';
+        }
+
+        /* Or in JS (already in your code): if (window.self !== window.top) fullscreenBtn.style.display = 'none'; */
 
         /* Knobs */
         .knob,
@@ -180,24 +235,17 @@
             justify-content: center;
             align-items: center;
             transition: all 0.6s cubic-bezier(0.2, 0.8, 0.4, 1);
-        }
-
-        /* Default light knobs */
-        .knob,
-        .clock-knob {
             background: linear-gradient(135deg, #ffffff, #f1f5f9);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2),
                 inset 0 -6px 12px rgba(0, 0, 0, 0.1),
                 inset 0 6px 12px rgba(255, 255, 255, 0.8);
         }
 
-        /* Checked = slide right */
         .theme-toggle input:checked+.track .knob,
         .clock-toggle input:checked+.clock-track .clock-knob {
             transform: translateX(calc(var(--track-w) - var(--knob-size) - var(--knob-offset-x)*2)) translateY(-50%);
         }
 
-        /* Dark mode knobs */
         .theme-toggle input:checked+.track .knob,
         body.dark .clock-knob {
             background: linear-gradient(135deg, #1e293b, #334155);
@@ -206,7 +254,6 @@
                 inset 0 6px 12px rgba(255, 255, 255, 0.1);
         }
 
-        /* 24H purple accent (light mode only) */
         body:not(.dark) .clock-toggle input:checked+.clock-track .clock-knob {
             background: linear-gradient(135deg, #c084fc, #a78bfa);
             box-shadow: 0 10px 20px rgba(160, 120, 255, 0.3),
@@ -225,7 +272,6 @@
             color: #e2e8f0;
         }
 
-        /* Icons & labels */
         .icon {
             width: 60%;
             height: 60%;
@@ -270,17 +316,30 @@
     <div id="app">
         <div id="clock" role="timer" aria-live="polite" aria-atomic="true"></div>
 
+        <!-- Fullscreen Button -->
+        <!-- FULLSCREEN BUTTON – Updated HTML (replace your current one) -->
+        <button id="fullscreenBtn" class="fullscreen-toggle" aria-label="Enter fullscreen">
+            <svg class="fullscreen-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <!-- Expand (default) -->
+                <path class="expand"
+                    d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                <!-- Compress (when fullscreen) -->
+                <path class="compress" d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"
+                    style="display:none" />
+            </svg>
+        </button>
+
         <!-- Theme Toggle -->
         <label class="toggle theme-toggle" aria-label="Toggle dark mode">
             <input type="checkbox" id="mode" />
             <div class="track">
                 <div class="knob">
-                    <svg class="icon sun" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg class="icon sun" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="6" />
                         <path
                             d="M12 5V3m0 18v-2m7.07-7.07l1.42-1.42m-12.72 0L6.35 9.35m12.72 5.36l-1.42 1.42M7.65 16.35l-1.42-1.42m0-9.9l1.42-1.42m9.9 12.72l1.42 1.42" />
                     </svg>
-                    <svg class="icon moon" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg class="icon moon" viewBox="0 0 24 24">
                         <path d="M12.12 3A7.5 7.5 0 0 0 4.5 12.12a7.5 7.5 0 0 0 14.76 2.18 7 7 0 0 1-7.14-9.3z" />
                     </svg>
                 </div>
@@ -300,12 +359,12 @@
     </div>
 
     <script>
-        // Responsive scaling – perfect in Notion, mobile, desktop
+        // Responsive scaling
         (function () {
             const app = document.getElementById('app');
             const setScale = () => {
                 const w = app.clientWidth;
-                const ideal = w * 0.19;                 // bigger clock, better use of space
+                const ideal = w * 0.19;
                 const scale = Math.max(70, Math.min(ideal, 180));
                 document.documentElement.style.setProperty('--scale', scale + 'px');
             };
@@ -314,7 +373,7 @@
             window.addEventListener('resize', setScale);
         })();
 
-        // Theme persistence
+        // Theme
         const themeToggle = document.getElementById('mode');
         if (localStorage.getItem('theme') === 'dark') {
             document.body.classList.add('dark');
@@ -326,7 +385,7 @@
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         });
 
-        // 12/24 hour persistence
+        // 12/24 hour
         const formatToggle = document.getElementById('clockFormat');
         let is24Hour = localStorage.getItem('clockFormat') === '24';
         formatToggle.checked = is24Hour;
@@ -352,6 +411,35 @@
             localStorage.setItem('clockFormat', is24Hour ? '24' : '12');
             updateClock();
         });
+
+        // Fullscreen
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const expandIcon = fullscreenBtn.querySelector('.expand');
+        const compressIcon = fullscreenBtn.querySelector('.compress');
+
+        function updateFullscreenUI() {
+            const isFs = !!document.fullscreenElement || !!document.webkitFullscreenElement;
+            expandIcon.style.display = isFs ? 'none' : 'block';
+            compressIcon.style.display = isFs ? 'block' : 'none';
+            fullscreenBtn.setAttribute('aria-label', isFs ? 'Exit fullscreen' : 'Enter fullscreen');
+        }
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen).call(document.documentElement);
+            } else {
+                (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+            }
+        });
+
+        document.addEventListener('fullscreenchange', updateFullscreenUI);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
+        updateFullscreenUI();
+
+        // Hide fullscreen button in Notion iframe
+        if (window.self !== window.top) {
+            fullscreenBtn.style.display = 'none';
+        }
     </script>
 </body>
 
