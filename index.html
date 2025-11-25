@@ -4,25 +4,37 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aura Clock — Notion Responsive</title>
+    <title>Aura Clock — Notion Widget</title>
+
+    <!-- PWA / Homescreen polish -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>Clock</text></svg>" />
+    <meta name="theme-color" content="#6a11cb" />
+
     <style>
-        /* Container-based scale variable (set via JS) */
         :root {
             --scale: clamp(3rem, 12vw, 10rem);
-            /* same as clock */
-            /* fallback in case JS doesn't run */
             --track-w: var(--scale);
             --track-h: calc(var(--scale) / 2.5);
             --knob-size: calc(var(--scale) / 2.8);
             --knob-offset-x: 8px;
-            --knob-right-shift: calc(var(--track-w) - var(--knob-size) - (var(--knob-offset-x) * 2));
         }
 
-        /* Aura background and theme */
+        @keyframes breathe {
+
+            0%,
+            100% {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.25), 0 0 40px rgba(106, 17, 203, 0.6), 0 0 60px rgba(37, 117, 252, 0.6);
+            }
+
+            50% {
+                text-shadow: 0 0 30px rgba(255, 255, 255, 0.4), 0 0 60px rgba(106, 17, 203, 0.8), 0 0 90px rgba(37, 117, 252, 0.8);
+            }
+        }
+
         body {
             margin: 0;
             height: 100vh;
-            /* allows centering within widget iframe */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -37,13 +49,6 @@
             color: #e2e8f0;
         }
 
-        /* Remove glow when in dark mode */
-        body.dark #clock {
-            text-shadow: none;
-            /* disables glow */
-        }
-
-        /* App wrapper ensures ResizeObserver targets correct element */
         #app {
             position: relative;
             width: 100%;
@@ -53,32 +58,69 @@
             align-items: center;
         }
 
-        /* Clock uses container-based --scale */
         #clock {
             font-size: clamp(3rem, 12vw, 10rem);
-            /* min 3rem, scales with viewport, max 10rem */
             font-weight: 800;
             text-align: center;
-            text-shadow:
-                0 0 20px rgba(255, 255, 255, 0.25),
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.25),
                 0 0 40px rgba(106, 17, 203, 0.6),
                 0 0 60px rgba(37, 117, 252, 0.6);
         }
 
-        /* remove glow in dark mode */
         body.dark #clock {
             text-shadow: none;
         }
 
+        body:not(.dark) #clock {
+            animation: breathe 8s ease-in-out infinite;
+        }
 
-        /* Shared toggle base */
+        /* Accessibility & motion */
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .knob,
+            .clock-knob {
+                transition-duration: 0.05s !important;
+            }
+        }
+
+        /* Focus indicators */
+        .toggle input:focus-visible+.track,
+        .toggle input:focus-visible+.clock-track {
+            outline: 4px solid rgba(255, 255, 255, 0.5);
+            outline-offset: 4px;
+        }
+
+        body.dark .toggle input:focus-visible+.track,
+        body.dark .toggle input:focus-visible+.clock-track {
+            outline-color: rgba(148, 163, 184, 0.6);
+        }
+
+        /* Toggles – shared */
         .toggle {
             position: fixed;
             width: var(--track-w);
             height: var(--track-h);
+            min-width: 56px;
+            min-height: 56px;
             cursor: pointer;
             user-select: none;
-            z-index: 5;
+            z-index: 10;
+        }
+
+        .toggle::before {
+            content: "";
+            position: absolute;
+            inset: -12px;
+            /* larger tap target */
         }
 
         .toggle input {
@@ -87,38 +129,48 @@
             height: 0;
         }
 
-        .track {
+        .track,
+        .clock-track {
             position: absolute;
             inset: 0;
             border-radius: 50px;
-            background: linear-gradient(145deg, #e2e8f0, #ffffff);
-            box-shadow:
-                inset 8px 8px 16px rgba(163, 177, 198, 0.6),
-                inset -8px -8px 16px rgba(255, 255, 255, 0.9),
-                0 20px 40px rgba(0, 0, 0, 0.15);
             transition: all 0.6s cubic-bezier(0.2, 0.8, 0.4, 1);
         }
 
-        /* Theme toggle (right) — dark track when checked */
+        /* Theme toggle (top-right) */
         .theme-toggle {
-            top: 20px;
-            right: 20px;
+            inset-block-start: 20px;
+            inset-inline-end: 20px;
         }
 
-        .theme-toggle input:checked+.track {
+        .clock-toggle {
+            inset-block-start: 20px;
+            inset-inline-start: 20px;
+        }
+
+        /* Light tracks */
+        .track,
+        .clock-track {
+            background: linear-gradient(145deg, #e2e8f0, #ffffff);
+            box-shadow: inset 8px 8px 16px rgba(163, 177, 198, 0.6),
+                inset -8px -8px 16px rgba(255, 255, 255, 0.9),
+                0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Dark tracks */
+        body.dark .track,
+        body.dark .clock-track {
             background: linear-gradient(145deg, #1e293b, #334155);
-            box-shadow:
-                inset 8px 8px 16px rgba(0, 0, 0, 0.6),
+            box-shadow: inset 8px 8px 16px rgba(0, 0, 0, 0.6),
                 inset -8px -8px 16px rgba(100, 100, 150, 0.2),
                 0 20px 40px rgba(0, 0, 0, 0.4);
         }
 
-        /* Knob circles: vertical centering + horizontal slide combined */
+        /* Knobs */
         .knob,
         .clock-knob {
             position: absolute;
-            /* left: var(--knob-offset-x);*/
-            left: 8px;
+            left: var(--knob-offset-x);
             top: 50%;
             transform: translateY(-50%);
             width: var(--knob-size);
@@ -130,27 +182,50 @@
             transition: all 0.6s cubic-bezier(0.2, 0.8, 0.4, 1);
         }
 
-        /* Theme knob default (light) */
-        .knob {
-            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-            box-shadow:
-                0 10px 20px rgba(0, 0, 0, 0.2),
+        /* Default light knobs */
+        .knob,
+        .clock-knob {
+            background: linear-gradient(135deg, #ffffff, #f1f5f9);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2),
                 inset 0 -6px 12px rgba(0, 0, 0, 0.1),
                 inset 0 6px 12px rgba(255, 255, 255, 0.8);
         }
 
-        /* Theme knob when checked (dark) */
+        /* Checked = slide right */
         .theme-toggle input:checked+.track .knob,
         .clock-toggle input:checked+.clock-track .clock-knob {
-            transform: translateX(calc(var(--track-w) - var(--knob-size) - 16px)) translateY(-50%);
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            box-shadow:
-                0 10px 20px rgba(0, 0, 0, 0.4),
+            transform: translateX(calc(var(--track-w) - var(--knob-size) - var(--knob-offset-x)*2)) translateY(-50%);
+        }
+
+        /* Dark mode knobs */
+        .theme-toggle input:checked+.track .knob,
+        body.dark .clock-knob {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4),
                 inset 0 -6px 12px rgba(0, 0, 0, 0.3),
                 inset 0 6px 12px rgba(255, 255, 255, 0.1);
         }
 
-        /* Sun/Moon icons: centered and theme-exclusive */
+        /* 24H purple accent (light mode only) */
+        body:not(.dark) .clock-toggle input:checked+.clock-track .clock-knob {
+            background: linear-gradient(135deg, #c084fc, #a78bfa);
+            box-shadow: 0 10px 20px rgba(160, 120, 255, 0.3),
+                inset 0 -6px 12px rgba(120, 80, 200, 0.2),
+                inset 0 6px 12px rgba(255, 255, 255, 0.6);
+            color: #1e293b;
+        }
+
+        .clock-knob {
+            color: #1f2937;
+            font-weight: 800;
+            font-size: calc(var(--scale)/8);
+        }
+
+        body.dark .clock-knob {
+            color: #e2e8f0;
+        }
+
+        /* Icons & labels */
         .icon {
             width: 60%;
             height: 60%;
@@ -159,12 +234,10 @@
         .sun {
             fill: #f59e0b;
             filter: drop-shadow(0 0 12px #fbbf24);
-            transition: opacity 0.4s, transform 0.6s;
         }
 
         .moon {
             fill: #ffffff;
-            transition: opacity 0.4s, transform 0.6s;
         }
 
         body:not(.dark) .moon {
@@ -175,74 +248,6 @@
             display: none;
         }
 
-        /* 12/24 toggle track reacts to global theme */
-        .clock-toggle {
-            top: 20px;
-            left: 20px;
-        }
-
-        .clock-track {
-            position: absolute;
-            inset: 0;
-            border-radius: 50px;
-            transition: all 0.6s;
-        }
-
-        body:not(.dark) .clock-track {
-            background: linear-gradient(145deg, #e2e8f0, #ffffff);
-            box-shadow:
-                inset 8px 8px 16px rgba(163, 177, 198, 0.6),
-                inset -8px -8px 16px rgba(255, 255, 255, 0.9),
-                0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        body.dark .clock-track {
-            background: linear-gradient(145deg, #1e293b, #334155);
-            box-shadow:
-                inset 8px 8px 16px rgba(0, 0, 0, 0.6),
-                inset -8px -8px 16px rgba(100, 100, 150, 0.2),
-                0 20px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        /* 12/24 knob defaults (light) */
-        .clock-knob {
-            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-            box-shadow:
-                0 10px 20px rgba(0, 0, 0, 0.2),
-                inset 0 -6px 12px rgba(0, 0, 0, 0.1),
-                inset 0 6px 12px rgba(255, 255, 255, 0.8);
-            color: #1f2937;
-            font-weight: 800;
-            font-size: calc(var(--scale) / 8);
-            /* text scales with container */
-        }
-
-        /* Move 12/24 knob right when 24h is active; keep vertical centering */
-        .clock-toggle input:checked+.clock-track .clock-knob {
-            transform: translateX(var(--knob-right-shift)) translateY(-50%);
-        }
-
-        /* Light theme + 24h active => light purple knob */
-        body:not(.dark) .clock-toggle input:checked+.clock-track .clock-knob {
-            background: linear-gradient(135deg, #c084fc 0%, #a78bfa 100%);
-            box-shadow:
-                0 10px 20px rgba(160, 120, 255, 0.3),
-                inset 0 -6px 12px rgba(120, 80, 200, 0.2),
-                inset 0 6px 12px rgba(255, 255, 255, 0.6);
-            color: #1e293b;
-        }
-
-        /* Dark theme defaults for 12/24 knob */
-        body.dark .clock-knob {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            box-shadow:
-                0 10px 20px rgba(0, 0, 0, 0.4),
-                inset 0 -6px 12px rgba(0, 0, 0, 0.3),
-                inset 0 6px 12px rgba(255, 255, 255, 0.1);
-            color: #e2e8f0;
-        }
-
-        /* Labels inside 12/24 knob: show one at a time */
         .label-12 {
             display: inline;
         }
@@ -251,11 +256,11 @@
             display: none;
         }
 
-        .clock-toggle input:checked+.clock-track .clock-knob .label-12 {
+        .clock-toggle input:checked+.clock-track .label-12 {
             display: none;
         }
 
-        .clock-toggle input:checked+.clock-track .clock-knob .label-24 {
+        .clock-toggle input:checked+.clock-track .label-24 {
             display: inline;
         }
     </style>
@@ -263,20 +268,18 @@
 
 <body>
     <div id="app">
-        <div id="clock"></div>
+        <div id="clock" role="timer" aria-live="polite" aria-atomic="true"></div>
 
-        <!-- Light/Dark Toggle (top-right) -->
-        <label class="toggle theme-toggle" aria-label="Toggle theme">
+        <!-- Theme Toggle -->
+        <label class="toggle theme-toggle" aria-label="Toggle dark mode">
             <input type="checkbox" id="mode" />
             <div class="track">
                 <div class="knob">
-                    <!-- Sun (light mode) -->
                     <svg class="icon sun" viewBox="0 0 24 24" aria-hidden="true">
                         <circle cx="12" cy="12" r="6" />
                         <path
                             d="M12 5V3m0 18v-2m7.07-7.07l1.42-1.42m-12.72 0L6.35 9.35m12.72 5.36l-1.42 1.42M7.65 16.35l-1.42-1.42m0-9.9l1.42-1.42m9.9 12.72l1.42 1.42" />
                     </svg>
-                    <!-- Moon (dark mode) -->
                     <svg class="icon moon" viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M12.12 3A7.5 7.5 0 0 0 4.5 12.12a7.5 7.5 0 0 0 14.76 2.18 7 7 0 0 1-7.14-9.3z" />
                     </svg>
@@ -284,7 +287,7 @@
             </div>
         </label>
 
-        <!-- 12/24 Hour Toggle (top-left) -->
+        <!-- 12/24 Toggle -->
         <label class="toggle clock-toggle" aria-label="Toggle 12/24 hour format">
             <input type="checkbox" id="clockFormat" />
             <div class="clock-track">
@@ -297,62 +300,45 @@
     </div>
 
     <script>
-        /* Container-based scaling for Notion embeds */
+        // Responsive scaling – perfect in Notion, mobile, desktop
         (function () {
             const app = document.getElementById('app');
             const setScale = () => {
-                const w = app.clientWidth || window.innerWidth;
-                // Compute scale based on container width:
-                // min 160px, preferred 0.25 * container width, max 320px was 0.15 and max 180px
-                const preferred = w * 0.10;
-                const scale = Math.max(100, Math.min(preferred, 150));
+                const w = app.clientWidth;
+                const ideal = w * 0.19;                 // bigger clock, better use of space
+                const scale = Math.max(70, Math.min(ideal, 180));
                 document.documentElement.style.setProperty('--scale', scale + 'px');
             };
-            // Initial set and observe container resize
             setScale();
-            const ro = new ResizeObserver(setScale);
-            ro.observe(app);
-            // Fallback on window resize (some Notion cases)
+            new ResizeObserver(setScale).observe(app);
             window.addEventListener('resize', setScale);
         })();
 
-        /* Theme toggle */
+        // Theme persistence
         const themeToggle = document.getElementById('mode');
-        const body = document.body;
-        const savedTheme = localStorage.getItem('theme');
-
-        if (savedTheme === 'dark') {
-            body.classList.add('dark');
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark');
             themeToggle.checked = true;
-        } else {
-            body.classList.remove('dark');
-            themeToggle.checked = false;
         }
-
         themeToggle.addEventListener('change', () => {
             const isDark = themeToggle.checked;
-            body.classList.toggle('dark', isDark);
+            document.body.classList.toggle('dark', isDark);
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         });
 
-        /* Clock format toggle */
+        // 12/24 hour persistence
         const formatToggle = document.getElementById('clockFormat');
-        const savedFormat = localStorage.getItem('clockFormat') || '12';
-        formatToggle.checked = savedFormat === '24';
-        let is24Hour = savedFormat === '24';
+        let is24Hour = localStorage.getItem('clockFormat') === '24';
+        formatToggle.checked = is24Hour;
 
-        /* Clock formatting and rendering */
         function formatTime(now) {
             let h = now.getHours();
             const m = String(now.getMinutes()).padStart(2, '0');
             const s = String(now.getSeconds()).padStart(2, '0');
-            if (is24Hour) {
-                return `${String(h).padStart(2, '0')}:${m}:${s}`;
-            } else {
-                const suffix = h >= 12 ? ' PM' : ' AM';
-                h = h % 12 || 12;
-                return `${String(h).padStart(2, '0')}:${m}:${s}${suffix}`;
-            }
+            if (is24Hour) return `${String(h).padStart(2, '0')}:${m}:${s}`;
+            const suffix = h >= 12 ? ' PM' : ' AM';
+            h = h % 12 || 12;
+            return `${h}:${m}:${s}${suffix}`;
         }
 
         function updateClock() {
